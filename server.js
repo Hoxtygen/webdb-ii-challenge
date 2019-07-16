@@ -15,6 +15,10 @@ function getAllCars() {
     return db('cars').insert({ vin, make, model,mileage,transmissionType, status });
   }
 
+  function getCarById(id) {
+    return db('cars').where({ id });
+  }
+
 
 
 
@@ -40,6 +44,50 @@ server.post('/cars', async(req, res) => {
             errorMessage: error,
         })
     }
+});
+
+server.get('/cars/:id', validateCarId, async(req, res, next) => {
+    try {
+        const car = await getCarById(req.car.id);
+        //console.log(car)
+        if (!car) {
+            return res.status(404).json({
+                errorMessage: 'The car with the specified ID does not exist'
+            })
+        }
+        return res.status(200).json(car[0])
+    } catch (error) {
+      return res.status(500).json({
+          errorMessage: error,
+      })
+    }
 })
+
+async function validateCarId(req, res, next) {
+    const id = req.params.id;
+    console.log(id)
+    if (Number.isNaN(id) || id % 1 !== 0 || id < 0) {
+        return res.status(400).json({
+            errorMessage: "Invalid car id supplied"
+        });
+    }
+    try {
+        const [car] = await getCarById(id);
+        console.log(car)
+        if (!car) {
+            return res.status(404).json({
+                errorMessage: "The car with the specified ID does not exist."
+            })
+        }
+        req.car = car;
+    } catch (error) {
+        return res.status(500).json({
+            error
+        })
+    }
+    return next();
+};
+
+
 
 module.exports = server;
