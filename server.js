@@ -35,7 +35,7 @@ server.get('/cars', async(req, res) => {
   return res.json(cars);
 });
 
-server.post('/cars', async(req, res) => {
+server.post('/cars', validateCarBody, async(req, res) => {
     try {
         const newCar = await createNewCar(req.body);
         return res.json(newCar)
@@ -88,6 +88,18 @@ async function validateCarId(req, res, next) {
     return next();
 };
 
-
+function validateCarBody(req, res, next) {
+    if (!Object.keys(req.body).length) {
+        return res.status(400).send({
+            message: 'missing necessary information',
+          });
+    }
+    if (!req.body.vin || !req.body.make|| !req.body.model || !req.body.mileage) {
+        return res.status(400).json({
+            message: 'Missing required  req.body., make, model and  mileage field'
+        });
+    }
+    return next();
+}
 
 module.exports = server;
