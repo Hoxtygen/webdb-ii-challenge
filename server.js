@@ -19,7 +19,9 @@ function getAllCars() {
     return db('cars').where({ id });
   }
 
-
+function removeCar(id) {
+    return db('cars').where({ id }).del()
+}
 
 
 
@@ -37,8 +39,9 @@ server.get('/cars', async(req, res) => {
 
 server.post('/cars', validateCarBody, async(req, res) => {
     try {
-        const newCar = await createNewCar(req.body);
-        return res.json(newCar)
+        const [newCar] = await createNewCar(req.body);
+        const newCarData = await getCarById(newCar);
+        return res.json(newCarData)
     } catch (error) {
         return res.status(500).json({
             errorMessage: error,
@@ -61,6 +64,20 @@ server.get('/cars/:id', validateCarId, async(req, res, next) => {
           errorMessage: error,
       })
     }
+});
+
+server.delete('/cars/:id', validateCarId, async(req, res) => {
+    try {
+        const car = await removeCar(req.car.id);
+        return res.status(200).json({
+            message: 'Car successfully deleted'
+        })
+    } catch (error) {
+        return res.status(500).json({
+            error
+        })
+    }
+
 })
 
 async function validateCarId(req, res, next) {
